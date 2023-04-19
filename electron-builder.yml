@@ -1,0 +1,12 @@
+appId: us.patrick.quickcast
+productName: QuickCast
+copyright: Copyright © 2023 QuickCast
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - from: .
+    filter:
+      - package.json
+      - app
+publish: null
