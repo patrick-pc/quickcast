@@ -1,6 +1,6 @@
-appId: us.patrick.quickcast
+appId: app.quickcast.ai
 productName: QuickCast
-copyright: Copyright © 2023 QuickCast
+copyright: Copyright © 2023 Patrick Pascual
 directories:
   output: dist
   buildResources: resources
@@ -10,3 +10,10 @@ files:
       - package.json
       - app
 publish: null
+afterSign: notarize.js
+mac:
+  category: public.app-category.productivity
+  target: [dmg, zip]
+  entitlements: ./entitlements.mac.plist
+  entitlementsInherit: ./entitlements.mac.plist
+  hardenedRuntime: true
