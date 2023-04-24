@@ -2,13 +2,13 @@
   "private": true,
   "name": "quickcast",
   "description": "keyboard shortcuts that will help you create 10x faster",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "@_patrickpc",
   "main": "app/background.js",
   "scripts": {
     "dev": "nextron",
-    "build": "nextron build",
-    "deploy": "nextron build --publish always",
+    "build": "nextron build --universal",
+    "deploy": "nextron build --universal --publish always",
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
