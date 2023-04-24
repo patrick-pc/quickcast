@@ -9,6 +9,7 @@ import {
   ipcMain,
   shell,
 } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import serve from 'electron-serve'
 import path from 'path'
 
@@ -55,7 +56,7 @@ const createMainWindow = async () => {
   } else {
     const port = process.argv[2]
     await mainWindow.loadURL(`http://localhost:${port}/`)
-    // mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools()
   }
 
   // If 'esc' is pressed, hide the app window
@@ -95,6 +96,11 @@ const createMainWindow = async () => {
   globalShortcut.register('Cmd+0', () => {
     app.relaunch()
     app.exit()
+  })
+
+  // Check for updates
+  mainWindow.once('ready-to-show', () => {
+    autoUpdater.checkForUpdatesAndNotify()
   })
 }
 
@@ -152,6 +158,10 @@ ipcMain.on('open-chatgpt', () => {
   browserView.webContents.loadURL('https://chat.openai.com/')
 })
 
+ipcMain.on('app-version', (event) => {
+  event.sender.send('app-version', { version: app.getVersion() })
+})
+
 ipcMain.on('minimize', () => {
   hideWindow(mainWindow)
 })
@@ -162,6 +172,18 @@ ipcMain.on('quit', () => {
 
 app.on('window-all-closed', () => {
   app.quit()
+})
+
+ipcMain.on('restart-app', () => {
+  autoUpdater.quitAndInstall()
+})
+
+autoUpdater.on('update-available', () => {
+  mainWindow.webContents.send('update-available')
+})
+
+autoUpdater.on('update-downloaded', () => {
+  mainWindow.webContents.send('update-downloaded')
 })
 
 app.on('browser-window-focus', function () {

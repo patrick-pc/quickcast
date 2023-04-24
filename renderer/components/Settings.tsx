@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { ipcRenderer } from 'electron'
+import { RefreshCw } from 'react-feather'
 
 export const Settings = ({
   model,
@@ -9,6 +11,33 @@ export const Settings = ({
   setApiKey,
   setIsBrowserView,
 }) => {
+  const [appVersion, setAppVersion] = useState('0.0.0')
+  const [updateAvailable, setUpdateAvailable] = useState(false)
+  const [downloadAvailable, setDownloadAvailable] = useState(false)
+
+  useEffect(() => {
+    ipcRenderer.send('app-version')
+
+    ipcRenderer.on('app-version', (event, data) => {
+      setAppVersion(data.version)
+    })
+
+    ipcRenderer.on('update-available', () => {
+      setUpdateAvailable(true)
+    })
+
+    ipcRenderer.on('update-downloaded', () => {
+      setUpdateAvailable(true)
+      setDownloadAvailable(true)
+    })
+
+    return () => {
+      ipcRenderer.removeAllListeners('app-version')
+      ipcRenderer.removeAllListeners('update-available')
+      ipcRenderer.removeAllListeners('update-downloaded')
+    }
+  }, [])
+
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setModel(e.target.value)
     localStorage.setItem('model', e.target.value)
@@ -25,13 +54,13 @@ export const Settings = ({
   }
 
   return (
-    <div className="flex h-full w-full flex-col gap-8 overflow-y-auto overflow-x-hidden rounded-b-xl border-x border-b border-[#676767] bg-[#1F1F1F] p-4 pt-8 text-sm text-[#949494] shadow-lg drop-shadow-lg [&::-webkit-scrollbar]:hidden">
+    <div className="relative flex h-full w-full flex-col gap-8 overflow-y-auto overflow-x-hidden rounded-b-xl border-x border-b border-[#676767] bg-[#1F1F1F] p-4 pt-8 text-sm text-[#949494] shadow-lg drop-shadow-lg [&::-webkit-scrollbar]:hidden">
       <div className="flex select-none items-center justify-center gap-2">
         <img className="h-24 w-24" src="images/icon.png" alt="icon" />
 
         <div className="flex flex-col">
           <h1 className="text-xl font-semibold text-[#DCDCDC]">QuickCast</h1>
-          <p className="font-medium">0.0.1</p>
+          <p className="font-medium">{appVersion}</p>
         </div>
       </div>
 
@@ -110,6 +139,44 @@ export const Settings = ({
             Exit App
           </button>
         </div>
+      </div>
+
+      <div
+        className={`absolute bottom-0 left-0 mt-4 flex h-10 w-full items-center justify-between rounded-b-xl border-t border-t-[#434343] px-2 ${
+          updateAvailable ? 'block' : 'hidden'
+        }`}
+      >
+        <div
+          className="flex h-[1.8rem] w-[1.8rem] cursor-pointer select-none items-center justify-center gap-1 rounded-lg py-1 text-[#949494] transition hover:bg-[#292929] focus:outline-none"
+          onClick={() => setUpdateAvailable(false)}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-5 w-5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+
+        {downloadAvailable ? (
+          <div
+            className="flex cursor-pointer select-none items-center justify-center gap-1 rounded-lg px-2 py-1 transition hover:bg-[#292929] focus:outline-none"
+            onClick={() => ipcRenderer.send('restart-app')}
+          >
+            <p className="mr-1 text-xs font-medium text-[#949494]">Update Available</p>
+            <button className="flex h-5 w-5 items-center justify-center rounded-[.35rem] bg-[#484848] text-xs text-[#ADADAD] focus:outline-none">
+              <RefreshCw size={12} />
+            </button>
+          </div>
+        ) : (
+          <p className="mr-1 select-none text-xs font-medium text-[#949494]">
+            Downloading Updates...
+          </p>
+        )}
       </div>
     </div>
   )
