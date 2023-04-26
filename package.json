@@ -17,7 +17,8 @@
     "eventsource-parser": "^1.0.0",
     "openai": "^3.2.1",
     "react-feather": "^2.0.10",
-    "react-syntax-highlighter": "^15.5.0"
+    "react-syntax-highlighter": "^15.5.0",
+    "react-textarea-autosize": "^8.4.1"
   },
   "devDependencies": {
     "@types/node": "^18.11.18",

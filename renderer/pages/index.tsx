@@ -7,6 +7,7 @@ import { Settings } from '../components/Settings'
 import { useChatScroll } from '../hooks/useChatScroll'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Head from 'next/head'
+import TextareaAutosize from 'react-textarea-autosize'
 
 const INVALID_API_KEY_PROMPT =
   'Invalid API key. You can find yours here at https://platform.openai.com/account/api-keys'
@@ -56,7 +57,9 @@ function Home() {
   }, [])
 
   const sendMessage = async (regenerate = false) => {
-    if (!message) return
+    const trimmedMessage = message.trim()
+
+    if (!trimmedMessage) return
     if (settingsPage) setSettingsPage(false)
 
     const oldMessage = message
@@ -65,7 +68,7 @@ function Home() {
       ...conversation,
       {
         role: 'user',
-        content: message,
+        content: trimmedMessage,
       },
     ]
 
@@ -142,6 +145,19 @@ function Home() {
     }, 1000)
   }
 
+  const handleEnterPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+    if (e.key === 'ArrowUp') {
+      setMessage(lastMessage)
+      setTimeout(() => {
+        inputRef.current.select()
+      }, 1)
+    }
+  }
+
   const handleMouseOver = (index: number) => {
     setHover((c) => {
       return {
@@ -178,6 +194,7 @@ function Home() {
   const refreshPage = () => {
     if (isBrowserView) setIsBrowserView(true)
 
+    setMessage('')
     setSettingsPage(false)
     setConversation([{ role: 'system', content: prompt }])
     inputRef.current.focus()
@@ -198,41 +215,36 @@ function Home() {
           onClick={() => setIsBrowserView(false)}
         ></div>
         <div className="relative flex w-full">
-          <input
-            className={`z-10 w-full border border-[#676767] bg-[#292929] py-3 pl-4 pr-12 text-lg placeholder-[#949494] focus:outline-none ${
+          <TextareaAutosize
+            className={`z-10 w-full border border-[#676767] bg-[#292929] py-3 pl-4 pr-12 text-lg placeholder-[#949494] focus:outline-none [&::-webkit-scrollbar]:hidden ${
               conversation.length > 1 || settingsPage
                 ? 'rounded-t-xl border-b-[#434343]'
                 : 'rounded-xl'
             }`}
-            type="text"
             placeholder="Ask anything..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') sendMessage()
-              if (e.key === 'ArrowUp') {
-                setMessage(lastMessage)
-                setTimeout(() => {
-                  inputRef.current.select()
-                }, 1)
-              }
-            }}
+            onKeyDown={handleEnterPress}
+            minRows={1}
+            maxRows={10}
             ref={inputRef}
           />
 
           <button
-            className="absolute right-0 top-0 z-20 flex h-full items-center justify-center rounded-xl px-4 py-2 focus:outline-none"
+            className="absolute right-0 top-0 z-20 focus:outline-none"
             onClick={toggleSettingsPage}
           >
-            <Logo
-              className={`h-5 w-5 ${
-                isGenerating
-                  ? 'animate-pulse text-[#FFD60A]'
-                  : settingsPage
-                  ? 'text-[#FFFFFF]'
-                  : 'text-[#949494]'
-              }`}
-            />
+            <span className="flex h-[3.25rem] w-[3.25rem] items-center justify-center">
+              <Logo
+                className={`h-5 w-5 ${
+                  isGenerating
+                    ? 'animate-pulse text-[#FFD60A]'
+                    : settingsPage
+                    ? 'text-[#FFFFFF]'
+                    : 'text-[#949494]'
+                }`}
+              />
+            </span>
           </button>
         </div>
 
