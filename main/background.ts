@@ -56,7 +56,7 @@ const createMainWindow = async () => {
   } else {
     const port = process.argv[2]
     await mainWindow.loadURL(`http://localhost:${port}/`)
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
   }
 
   // If 'esc' is pressed, hide the app window

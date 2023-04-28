@@ -6,7 +6,8 @@ module.exports = {
     colors: {
       black: colors.black,
       white: colors.white,
+      transparent: colors.transparent,
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/typography')],
 }

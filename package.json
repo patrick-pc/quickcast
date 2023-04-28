@@ -17,10 +17,15 @@
     "eventsource-parser": "^1.0.0",
     "openai": "^3.2.1",
     "react-feather": "^2.0.10",
+    "react-markdown": "^8.0.7",
     "react-syntax-highlighter": "^15.5.0",
-    "react-textarea-autosize": "^8.4.1"
+    "react-textarea-autosize": "^8.4.1",
+    "rehype-mathjax": "^4.0.2",
+    "remark-gfm": "^3.0.1",
+    "remark-math": "^5.1.1"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.9",
     "@types/node": "^18.11.18",
     "@types/react": "^18.0.26",
     "autoprefixer": "^10.4.7",

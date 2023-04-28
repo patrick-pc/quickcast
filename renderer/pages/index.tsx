@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
+import { CodeBlock } from '../components/CodeBlock'
 import { Copy, Check, Command } from 'react-feather'
 import { createParser } from 'eventsource-parser'
 import { ipcRenderer } from 'electron'
 import { Logo } from '../components/Logo'
+import { MemoizedReactMarkdown } from '../components/MemoizedReactMarkDown'
 import { Settings } from '../components/Settings'
 import { useChatScroll } from '../hooks/useChatScroll'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 import Head from 'next/head'
+import rehypeMathjax from 'rehype-mathjax'
+import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 import TextareaAutosize from 'react-textarea-autosize'
 
 const INVALID_API_KEY_PROMPT =
@@ -22,13 +27,19 @@ function Home() {
 
   const [message, setMessage] = useState('')
   const [lastMessage, setLastMessage] = useState('')
-  const [conversation, setConversation] = useState([{ role: 'system', content: prompt }])
+  const [conversation, setConversation] = useState([
+    {
+      role: 'system',
+      content: `$${prompt}. Follow the user's instructions carefully. Respond using markdown.`,
+    },
+  ])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isCopied, setIsCopied] = useState(false)
   const [isBrowserView, setIsBrowserView] = useState(false)
   const [settingsPage, setSettingsPage] = useState(false)
   const [hover, setHover] = useState({})
   const inputRef = useRef(null)
+  const testRef = useRef(null)
   const conversationRef = useChatScroll(conversation)
 
   useEffect(() => {
@@ -257,7 +268,7 @@ function Home() {
               <div className="rounded-b-xl border-x border-b border-[#676767] bg-[#1F1F1F] shadow-lg drop-shadow-lg">
                 {conversation.map((message: { role: string; content: string }, i: number) => {
                   return (
-                    <div className="relative px-4" key={i}>
+                    <div className="prose dark:prose-invert relative max-w-4xl px-4" key={i}>
                       {message.role !== 'system' &&
                         (message.role === 'user' ? (
                           <p className="mt-4 text-[#949494]" key={i}>
@@ -265,11 +276,55 @@ function Home() {
                           </p>
                         ) : (
                           <div
-                            className="relative flex justify-between"
+                            className="relative"
                             onMouseOver={() => handleMouseOver(i)}
                             onMouseOut={() => handleMouseOut(i)}
                           >
-                            <pre className="w-full">{message.content}</pre>
+                            <MemoizedReactMarkdown
+                              className="prose dark:prose-invert max-w-4xl"
+                              remarkPlugins={[remarkGfm, remarkMath]}
+                              rehypePlugins={[rehypeMathjax]}
+                              linkTarget="_blank"
+                              components={{
+                                code({ node, inline, className, children, ...props }) {
+                                  const match = /language-(\w+)/.exec(className || '')
+                                  return !inline ? (
+                                    <CodeBlock
+                                      language={(match && match[1]) || ''}
+                                      value={String(children).replace(/\n$/, '')}
+                                      {...props}
+                                    />
+                                  ) : (
+                                    <code className={className} {...props}>
+                                      {children}
+                                    </code>
+                                  )
+                                },
+                                table({ children }) {
+                                  return (
+                                    <table className="border-collapse border border-black px-3 py-1 dark:border-white">
+                                      {children}
+                                    </table>
+                                  )
+                                },
+                                th({ children }) {
+                                  return (
+                                    <th className="break-words border border-black bg-gray-500 px-3 py-1 text-white dark:border-white">
+                                      {children}
+                                    </th>
+                                  )
+                                },
+                                td({ children }) {
+                                  return (
+                                    <td className="break-words border border-black px-3 py-1 dark:border-white">
+                                      {children}
+                                    </td>
+                                  )
+                                },
+                              }}
+                            >
+                              {message.content}
+                            </MemoizedReactMarkdown>
 
                             {message.content === INVALID_API_KEY_PROMPT ? (
                               <button
@@ -283,7 +338,7 @@ function Home() {
                               </button>
                             ) : (
                               <div
-                                className={`flex h-auto w-6 items-end justify-end ${
+                                className={`absolute bottom-0 right-0 h-auto w-6 ${
                                   hover[i] ? 'visible' : 'invisible'
                                 }`}
                               >

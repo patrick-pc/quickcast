@@ -3,20 +3,11 @@
 @tailwind utilities;
 
 @layer base {
-  pre {
-    white-space: pre-wrap; /* Since CSS 2.1 */
-    white-space: -moz-pre-wrap; /* Mozilla, since 1999 */
-    white-space: -pre-wrap; /* Opera 4-6 */
-    white-space: -o-pre-wrap; /* Opera 7 */
-    word-wrap: break-word; /* Internet Explorer 5.5+ */
-    font-size: inherit;
-    font-family: inherit;
-    color: inherit;
-    border: initial;
-    padding: initial;
+  pre:has(div.codeblock) {
+    @apply bg-transparent p-0;
   }
 
   textarea {
-    resize: none;
+    @apply resize-none;
   }
 }
