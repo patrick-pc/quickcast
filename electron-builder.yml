@@ -9,9 +9,6 @@ files:
     filter:
       - package.json
       - app
-publish:
-  provider: github
-  token: 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
 afterSign: notarize.js
 mac:
   category: public.app-category.productivity
