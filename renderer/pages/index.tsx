@@ -39,7 +39,6 @@ function Home() {
   const [settingsPage, setSettingsPage] = useState(false)
   const [hover, setHover] = useState({})
   const inputRef = useRef(null)
-  const testRef = useRef(null)
   const conversationRef = useChatScroll(conversation)
 
   useEffect(() => {

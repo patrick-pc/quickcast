@@ -8,6 +8,7 @@ import {
   globalShortcut,
   ipcMain,
   shell,
+  dialog,
 } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import serve from 'electron-serve'

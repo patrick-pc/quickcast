@@ -6,7 +6,7 @@ const electron_notarize = require('electron-notarize')
 module.exports = async function (params) {
   if (process.platform !== 'darwin') return
 
-  let appId = 'app.quickcast.ai'
+  let appId = 'ai.quickcast.app'
   let appPath = path.join(params.appOutDir, `${params.packager.appInfo.productFilename}.app`)
 
   if (!fs.existsSync(appPath)) {
