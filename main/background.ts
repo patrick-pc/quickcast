@@ -100,9 +100,7 @@ const createMainWindow = async () => {
   })
 
   // Check for updates
-  mainWindow.once('ready-to-show', () => {
-    autoUpdater.checkForUpdatesAndNotify()
-  })
+  autoUpdater.checkForUpdates()
 }
 
 const createTray = () => {
