@@ -217,7 +217,7 @@ function Home() {
         <title>quickcast</title>
       </Head>
 
-      <main className="relative flex h-screen w-full flex-col text-[#DDDDDD]">
+      <main className="dark relative flex h-screen w-full flex-col text-[#DDDDDD]">
         <div
           className={`absolute left-0 top-0 z-30 h-screen w-full bg-white transition-all ${
             isBrowserView ? 'block' : 'hidden'
