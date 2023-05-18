@@ -2,7 +2,7 @@
   "private": true,
   "name": "quickcast",
   "description": "keyboard shortcuts that will help you create 10x faster",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "author": "@_patrickpc",
   "main": "app/background.js",
   "scripts": {
@@ -17,6 +17,7 @@
     "eventsource-parser": "^1.0.0",
     "openai": "^3.2.1",
     "react-feather": "^2.0.10",
+    "react-hotkeys-hook": "^4.4.0",
     "react-markdown": "^8.0.7",
     "react-syntax-highlighter": "^15.5.0",
     "react-textarea-autosize": "^8.4.1",

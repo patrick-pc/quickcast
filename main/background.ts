@@ -8,15 +8,27 @@ import {
   globalShortcut,
   ipcMain,
   shell,
-  dialog,
 } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import serve from 'electron-serve'
+import Store from 'electron-store'
 import path from 'path'
 
+const schema = {
+  defaultKeyCombination: {
+    type: 'string',
+    default: 'Cmd+E',
+  },
+}
+const store = new Store({ schema } as any)
+
 let mainWindow = undefined
+let chatGptBrowserView = undefined
+let bardBrowserView = undefined
+
 const width = 750
-const height = 475
+const height = 525
+
 const isProd: boolean = process.env.NODE_ENV === 'production'
 
 if (isProd) {
@@ -28,6 +40,7 @@ if (isProd) {
 app.on('ready', async () => {
   await createMainWindow()
   createTray()
+  createBrowserViews()
 })
 
 const createMainWindow = async () => {
@@ -45,7 +58,8 @@ const createMainWindow = async () => {
       contextIsolation: false,
       backgroundThrottling: false,
     },
-    // vibrancy: 'ultra-dark',
+    darkTheme: true,
+    vibrancy: 'ultra-dark',
   })
 
   // This is to show up on all desktops/workspaces
@@ -93,14 +107,11 @@ const createMainWindow = async () => {
     toggleWindow(mainWindow)
   })
 
-  // Restart the app
-  globalShortcut.register('Cmd+0', () => {
-    app.relaunch()
-    app.exit()
-  })
+  // Open app on start
+  toggleWindow(mainWindow)
 
   // Check for updates
-  autoUpdater.checkForUpdates()
+  await autoUpdater.checkForUpdates()
 }
 
 const createTray = () => {
@@ -145,16 +156,66 @@ const hideWindow = (window: BrowserWindow) => {
   // window.reload()
 }
 
-ipcMain.on('open-chatgpt', () => {
-  const browserView = new BrowserView({
+const createBrowserViews = () => {
+  chatGptBrowserView = new BrowserView({
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
-  mainWindow.setBrowserView(browserView)
-  browserView.setBounds({ x: 0, y: 0, width: 750, height: 475 })
-  browserView.webContents.loadURL('https://chat.openai.com/')
+  mainWindow.setBrowserView(chatGptBrowserView)
+  chatGptBrowserView.setBounds({ x: 0, y: 43, width: 750, height: 482 })
+  chatGptBrowserView.webContents.loadURL('https://chat.openai.com/')
+
+  mainWindow.addBrowserView(chatGptBrowserView)
+  mainWindow.removeBrowserView(chatGptBrowserView)
+
+  bardBrowserView = new BrowserView({
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  })
+  mainWindow.setBrowserView(bardBrowserView)
+  bardBrowserView.setBounds({ x: 0, y: 43, width: 750, height: 482 })
+  bardBrowserView.webContents.loadURL('https://bard.google.com/')
+
+  mainWindow.addBrowserView(bardBrowserView)
+  mainWindow.removeBrowserView(bardBrowserView)
+}
+
+ipcMain.on('set::keycombine', (event, combination) => {
+  // Unregister old key combination
+  globalShortcut.unregister(store.get('defaultKeyCombination') as string)
+
+  // Set new key combination
+  store.set('defaultKeyCombination', combination)
+
+  // Register new key combination
+  globalShortcut.register(store.get('defaultKeyCombination') as string, () => {
+    toggleWindow(mainWindow)
+  })
+
+  // Send reply to renderer
+  event.reply('done::keycombine', store.get('defaultKeyCombination'))
+})
+
+ipcMain.on('open-quickcast', () => {
+  mainWindow.removeBrowserView(chatGptBrowserView)
+  mainWindow.removeBrowserView(bardBrowserView)
+  mainWindow.webContents.send('quickcast-view')
+})
+
+ipcMain.on('open-chatgpt', () => {
+  mainWindow.setBrowserView(chatGptBrowserView)
+  mainWindow.removeBrowserView(bardBrowserView)
+  mainWindow.webContents.send('chatgpt-view')
+})
+
+ipcMain.on('open-bard', () => {
+  mainWindow.setBrowserView(bardBrowserView)
+  mainWindow.removeBrowserView(chatGptBrowserView)
+  mainWindow.webContents.send('bard-view')
 })
 
 ipcMain.on('app-version', (event) => {
@@ -183,18 +244,46 @@ autoUpdater.on('update-available', () => {
 
 autoUpdater.on('update-downloaded', () => {
   mainWindow.webContents.send('update-downloaded')
+  autoUpdater.quitAndInstall()
 })
 
 app.on('browser-window-focus', function () {
-  globalShortcut.register('CommandOrControl+R', () => {
+  globalShortcut.register('Cmd+1', () => {
+    mainWindow.removeBrowserView(chatGptBrowserView)
+    mainWindow.removeBrowserView(bardBrowserView)
+    mainWindow.webContents.send('quickcast-view')
+  })
+
+  globalShortcut.register('Cmd+2', () => {
+    mainWindow.setBrowserView(chatGptBrowserView)
+    mainWindow.removeBrowserView(bardBrowserView)
+    mainWindow.webContents.send('chatgpt-view')
+  })
+
+  globalShortcut.register('Cmd+3', () => {
+    mainWindow.setBrowserView(bardBrowserView)
+    mainWindow.removeBrowserView(chatGptBrowserView)
+    mainWindow.webContents.send('bard-view')
+  })
+
+  globalShortcut.register('Cmd+W', () => {
+    // Unregister close window shortcut
+  })
+
+  globalShortcut.register('Cmd+R', () => {
     mainWindow.webContents.send('refresh')
   })
+
   globalShortcut.register('F5', () => {
     mainWindow.webContents.send('refresh')
   })
 })
 
 app.on('browser-window-blur', function () {
-  globalShortcut.unregister('CommandOrControl+R')
+  globalShortcut.unregister('Cmd+1')
+  globalShortcut.unregister('Cmd+2')
+  globalShortcut.unregister('Cmd+3')
+  globalShortcut.unregister('Cmd+W')
+  globalShortcut.unregister('Cmd+R')
   globalShortcut.unregister('F5')
 })

@@ -11,3 +11,27 @@
     @apply resize-none;
   }
 }
+
+@layer components {
+  .gradient-bg {
+    position: absolute;
+    /* right: 0; */
+    /* width: calc(min(750px, 100vw - 450px) * 0.7); */
+    width: 100%;
+    transform: translate(15%);
+    height: 110%;
+    background-image: linear-gradient(#000000, transparent 20%),
+      conic-gradient(
+        from -0.25turn at 50% 50%,
+        #884bfb 0deg 98deg,
+        rgb(199, 200, 204) 100deg 104deg,
+        transparent 107deg 118deg,
+        rgb(199, 200, 204) 119deg 124deg,
+        rgb(111, 172, 212) 128deg 180deg
+      );
+    top: 70%;
+    border-radius: 50%;
+    filter: blur(100px) saturate(2);
+    opacity: 0.3;
+  }
+}
