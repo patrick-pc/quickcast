@@ -13,6 +13,9 @@ import { autoUpdater } from 'electron-updater'
 import serve from 'electron-serve'
 import Store from 'electron-store'
 import path from 'path'
+import { keyboard, Key } from '@nut-tree/nut-js'
+
+keyboard.config.autoDelayMs = 0
 
 const schema = {
   defaultKeyCombination: {
@@ -164,8 +167,12 @@ const createBrowserViews = () => {
     },
   })
   mainWindow.setBrowserView(chatGptBrowserView)
-  chatGptBrowserView.setBounds({ x: 0, y: 43, width: 750, height: 482 })
+  chatGptBrowserView.setBounds({ x: 0, y: 50, width: 750, height: 475 })
   chatGptBrowserView.webContents.loadURL('https://chat.openai.com/')
+  chatGptBrowserView.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
+    return { action: 'deny' }
+  })
 
   mainWindow.addBrowserView(chatGptBrowserView)
   mainWindow.removeBrowserView(chatGptBrowserView)
@@ -177,8 +184,12 @@ const createBrowserViews = () => {
     },
   })
   mainWindow.setBrowserView(bardBrowserView)
-  bardBrowserView.setBounds({ x: 0, y: 43, width: 750, height: 482 })
+  bardBrowserView.setBounds({ x: 0, y: 50, width: 750, height: 475 })
   bardBrowserView.webContents.loadURL('https://bard.google.com/')
+  bardBrowserView.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
+    return { action: 'deny' }
+  })
 
   mainWindow.addBrowserView(bardBrowserView)
   mainWindow.removeBrowserView(bardBrowserView)
@@ -277,6 +288,8 @@ app.on('browser-window-focus', function () {
   globalShortcut.register('F5', () => {
     mainWindow.webContents.send('refresh')
   })
+
+  globalShortcut.register('Enter', simulateEnter)
 })
 
 app.on('browser-window-blur', function () {
@@ -286,4 +299,21 @@ app.on('browser-window-blur', function () {
   globalShortcut.unregister('Cmd+W')
   globalShortcut.unregister('Cmd+R')
   globalShortcut.unregister('F5')
+  globalShortcut.unregister('Enter')
 })
+
+app.on('will-quit', () => {
+  // Unregister all shortcuts.
+  globalShortcut.unregisterAll()
+})
+
+async function simulateEnter() {
+  globalShortcut.unregister('Enter')
+
+  await keyboard.pressKey(Key.LeftCmd)
+  await keyboard.pressKey(Key.Enter)
+  await keyboard.releaseKey(Key.LeftCmd)
+  await keyboard.releaseKey(Key.Enter)
+
+  globalShortcut.register('Enter', simulateEnter)
+}
