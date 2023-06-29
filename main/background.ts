@@ -114,7 +114,7 @@ const createMainWindow = async () => {
   toggleWindow(mainWindow)
 
   // Check for updates
-  await autoUpdater.checkForUpdates()
+  await autoUpdater.checkForUpdatesAndNotify()
 }
 
 const createTray = () => {
@@ -254,8 +254,8 @@ autoUpdater.on('update-available', () => {
 })
 
 autoUpdater.on('update-downloaded', () => {
-  mainWindow.webContents.send('update-downloaded')
   autoUpdater.quitAndInstall()
+  mainWindow.webContents.send('update-downloaded')
 })
 
 app.on('browser-window-focus', function () {
